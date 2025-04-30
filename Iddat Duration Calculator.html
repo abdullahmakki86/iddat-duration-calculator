@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iddat Calculator</title>
+<style>
+.iddat-calculator-container {
+  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to right, #e0f7fa, #ffffff);
+  padding: 20px;
+  margin: 0;
+}
+.iddat-calculator-container .container {
+  max-width: 600px;
+  margin: 40px auto;
+  background: #ffffff;
+  padding: 40px 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+.iddat-calculator-container h2 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 28px;
+  color: #00796b;
+}
+.iddat-calculator-container p.credit {
+  text-align: center;
+  font-size: 14px;
+  margin-top: 5px;
+  margin-bottom: 30px;
+}
+.iddat-calculator-container p.credit a {
+  color: #007bff;
+  text-decoration: none;
+}
+.iddat-calculator-container label {
+  font-weight: 600;
+  display: block;
+  margin-top: 20px;
+  color: #333;
+}
+.iddat-calculator-container select,
+.iddat-calculator-container input,
+.iddat-calculator-container button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+.iddat-calculator-container button {
+  background-color: #00796b;
+  color: white;
+  font-weight: bold;
+  margin-top: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.iddat-calculator-container button:hover {
+  background-color: #004d40;
+}
+.iddat-calculator-container .result {
+  margin-top: 30px;
+  padding: 20px;
+  background: linear-gradient(to right, #e0f2f1, #ffffff);
+  border: 1px solid #b2dfdb;
+  border-radius: 10px;
+  font-size: 16px;
+  text-align: center;
+  color: #004d40;
+  font-weight: 600;
+}
+.date-selectors {
+  display: flex;
+  gap: 10px;
+}
+.date-selectors select,
+.date-selectors input {
+  flex: 1;
+}
+.disclaimer {
+  text-align: center;
+  font-size: 14px;
+  margin-top: 20px;
+  color: #555;
+}
+</style>
+</head>
+<body>
+
+<div class="iddat-calculator-container">
+<div class="container">
+<h2>Iddat Calculator</h2>
+<p class="credit">by <a href="https://theblessednights.com" target="_blank">TheBlessedNights</a></p>
+
+<label for="iddatReason">Reason for Iddat:</label>
+<select id="iddatReason">
+<option value="death">Death of Husband</option>
+<option value="divorce">Divorce</option>
+</select>
+
+<label id="startDateLabel">When did the event happen?</label>
+<div class="date-selectors">
+<select id="startDay"></select>
+<select id="startMonth">
+<option value="0">January</option>
+<option value="1">February</option>
+<option value="2">March</option>
+<option value="3">April</option>
+<option value="4">May</option>
+<option value="5">June</option>
+<option value="6">July</option>
+<option value="7">August</option>
+<option value="8">September</option>
+<option value="9">October</option>
+<option value="10">November</option>
+<option value="11">December</option>
+</select>
+<input type="text" id="startYear" placeholder="Enter Year">
+</div>
+
+<button id="calculateButton">Calculate Iddat End Date</button>
+<div id="result" class="result" style="display:none;"></div>
+<p class="disclaimer">Note: For exact rulings and specific situations, please consult a qualified Islamic scholar.</p>
+</div>
+</div>
+
+<script>
+function populateStartDay() {
+  let select = document.getElementById('startDay');
+  select.innerHTML = "";
+  for (let i = 1; i <= 31; i++) {
+    let option = document.createElement("option");
+    option.value = i;
+    option.text = i;
+    select.appendChild(option);
+  }
+}
+
+function getHijriDate(gDate) {
+  const islamicEpoch = 1948439.5;
+  const jd = (gDate.getTime() / 86400000) + 2440587.5;
+  const daysSinceEpoch = jd - islamicEpoch;
+  let hijriYear = Math.floor((30 * daysSinceEpoch + 10646) / 10631);
+  let firstDayOfYear = islamicEpoch + (hijriYear - 1) * 354 + Math.floor((3 + 11 * hijriYear) / 30);
+  let dayOfYear = Math.floor(jd) - Math.floor(firstDayOfYear) + 1;
+  const monthDays = [30,29,30,29,30,29,30,29,30,29,30,29];
+  let hijriMonth = 1;
+  while (dayOfYear > monthDays[hijriMonth - 1]) {
+    dayOfYear -= monthDays[hijriMonth - 1];
+    hijriMonth++;
+  }
+  let hijriDay = dayOfYear + 1;
+  if (hijriDay > 30) { hijriDay = 1; hijriMonth++; if (hijriMonth > 12) { hijriMonth = 1; hijriYear++; } }
+  const hijriMonthNames = ["Muharram", "Safar", "Rabi' al-awwal", "Rabi' al-thani", "Jumada al-awwal", "Jumada al-thani", "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhul-Qi'dah", "Dhul-Hijjah"];
+  return `${hijriDay}-${hijriMonthNames[hijriMonth - 1]}-${hijriYear} AH`;
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  populateStartDay();
+  document.getElementById('iddatReason').addEventListener('change', function() {
+    const label = document.getElementById('startDateLabel');
+    if (this.value === 'death') {
+      label.textContent = 'When did your husband pass away?';
+    } else {
+      label.textContent = 'When did you get divorced?';
+    }
+  });
+  document.getElementById('calculateButton').addEventListener('click', calculateIddat);
+});
+
+function calculateIddat() {
+  const reason = document.getElementById('iddatReason').value;
+  const day = parseInt(document.getElementById('startDay').value);
+  const month = parseInt(document.getElementById('startMonth').value);
+  const yearField = document.getElementById('startYear').value.trim();
+  const resultDiv = document.getElementById('result');
+  resultDiv.style.display = 'block';
+
+  if (yearField === "") {
+    resultDiv.innerHTML = "Please enter a valid year.";
+    return;
+  }
+
+  const year = parseInt(yearField);
+  const startDate = new Date(year, month, day);
+  let iddatEndDate = new Date(startDate);
+  let explanation = "";
+
+  if (reason === "death") {
+    iddatEndDate.setDate(iddatEndDate.getDate() + 130);
+    explanation = "In Islam, the Iddat after a husband's death is four months and ten days, which scholars recommend rounding off to 130 days. The widow must remain in her home, avoid beautification, and refrain from remarrying during this period.";
+  } else {
+    iddatEndDate.setMonth(iddatEndDate.getMonth() + 3);
+    explanation = "In case of divorce, the Iddat is three menstrual cycles. For women without regular cycles or post-menopause, the period is three lunar months.";
+  }
+
+  const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  const weekday = weekdays[iddatEndDate.getDay()];
+  const monthName = months[iddatEndDate.getMonth()];
+  const endDay = iddatEndDate.getDate();
+  const endYear = iddatEndDate.getFullYear();
+
+  const hijriFormatted = getHijriDate(iddatEndDate);
+
+  resultDiv.innerHTML = `
+Based on your input, your Iddat period is expected to end on:<br><br>
+<strong>${weekday}, ${endDay} ${monthName} ${endYear} (Gregorian calendar)</strong><br>
+<strong>Approximate Hijri Date:</strong> ${hijriFormatted}<br><br>
+${explanation}<br><br>
+<em style="color: red;">Note: If you are pregnant, your Iddat will end immediately upon childbirth, even if it occurs before the calculated end date.</em>
+`;
+}
+</script>
+
+</body>
+</html>
